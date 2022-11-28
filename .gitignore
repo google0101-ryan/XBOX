@@ -1,0 +1,17 @@
+xbox
+xbox.rom
+mcpx_1.0.bin
+file
+tools/file
+tools/kernel_dumper/mem
+tools/kernel_dumper/kernel.memdump
+tools/kernel_dumper/xboxkrnl.exe
+tools/kernel_dumper/file
+tools/kernel_dumper/.mem.swp
+tools/kernel_dumper/2bl.img
+tools/kernel_dumper/unpack_kernel
+.vscode
+tools/xboxkrnl.exe
+tools/xbox_unpack/xbflash.ini
+disassemble.sh
+tools/xbox_unpack/out
