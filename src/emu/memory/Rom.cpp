@@ -41,7 +41,7 @@ Rom::Rom(std::string mcpx_path)
     printf("Sucessfully loaded MCPX ROM\n");
 }
 
-uint8_t Rom::ReadByte(uint32_t address)
+uint8_t Rom::mem_ReadByte(uint32_t address)
 {
     if ((address & 0xFFFFFE00) == 0xFFFFFE00 && isMcpxEnabled)
     {
@@ -55,7 +55,7 @@ uint8_t Rom::ReadByte(uint32_t address)
     exit(1);
 }
 
-uint16_t Rom::ReadWord(uint32_t address)
+uint16_t Rom::mem_ReadWord(uint32_t address)
 {
     if ((address & 0xFFFFFE00) == 0xFFFFFE00 && isMcpxEnabled)
     {
@@ -69,7 +69,7 @@ uint16_t Rom::ReadWord(uint32_t address)
     exit(1);
 }
 
-uint32_t Rom::ReadDoubleWord(uint32_t address)
+uint32_t Rom::mem_ReadDoubleWord(uint32_t address)
 {
     if ((address & 0xFFFFFE00) == 0xFFFFFE00)
     {
@@ -79,24 +79,24 @@ uint32_t Rom::ReadDoubleWord(uint32_t address)
     {
         return *(uint32_t*)&rom[address & 0xFFFFF];
     }
-    printf("[%s]ERR: Could not read from address 0x%08x\n", GetName().c_str(), address);
+    printf("[%s] ERR: Could not read from address 0x%08x\n", GetName().c_str(), address);
     exit(1);
 }
 
-void Rom::WriteByte(uint32_t address, uint8_t)
+void Rom::mem_WriteByte(uint32_t address, uint8_t)
 {
-    printf("[%s]ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
+    printf("[%s] ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
     exit(1);
 }
 
-void Rom::WriteWord(uint32_t address, uint16_t)
+void Rom::mem_WriteWord(uint32_t address, uint16_t)
 {
-    printf("[%s]ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
+    printf("[%s] ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
     exit(1);
 }
 
-void Rom::WriteDoubleWord(uint32_t address, uint32_t)
+void Rom::mem_WriteDoubleWord(uint32_t address, uint32_t)
 {
-    printf("[%s]ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
+    printf("[%s] ERR: Could not write to address 0x%08x\n", GetName().c_str(), address);
     exit(1);
 }

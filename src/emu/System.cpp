@@ -1,7 +1,14 @@
 #include <emu/System.h>
+#include <csignal>
+
+extern System* _sys;
 
 System::System()
 {
+	auto lam = [](int) {exit(1);};
+	std::signal(SIGINT, lam);
+	
+
     bus = new Bus();
     
     if (!bus)
@@ -30,7 +37,14 @@ System::System()
 
 	pci = new PCIBus(iobus);
 
-	isa = new ISA(pci);
+	isa = new ISA(pci, iobus);
+	agp = new AGP(pci);
+	hostbridge = new HostBridge(pci, bus);
+	nv2a = new NV2A(pci, bus);
+	smbus = new SMBUS(pci, iobus);
+	dram = new DramController(pci);
+	usb1 = new OHCI(pci, bus, 0);
+	usb2 = new OHCI(pci, bus, 1);
 
     cpu = new CPU(bus, iobus);
 }
@@ -43,4 +57,5 @@ void System::Clock()
 void System::Dump()
 {
     cpu->Dump();
+	bus->Dump_2bl();
 }

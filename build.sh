@@ -1,1 +1,1 @@
-g++ src/main.cpp src/emu/*.cpp src/app/*.cpp src/emu/memory/*.cpp src/emu/cpu/*.cpp src/emu/pci/*.cpp -o xbox -I./src -Wall -Wextra -std=c++20 -g
+g++ src/main.cpp src/emu/*.cpp src/app/*.cpp src/emu/memory/*.cpp src/emu/cpu/*.cpp src/emu/pci/*.cpp src/emu/nv2a/nv2a.cpp src/emu/nv2a/engines/*.cpp src/emu/smbus/smbus.cpp -o xbox -I./src -Wall -Wextra -std=c++20 -g

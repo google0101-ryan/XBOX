@@ -168,6 +168,17 @@ private:
         };
     } modrm;
 
+	union
+	{
+		uint8_t value;
+		struct
+		{
+			uint8_t base : 3;
+			uint8_t index : 3;
+			uint8_t scale : 2;
+		};
+	} sib;
+
     void LoadModRM()
 	{
 		modrm.value = bus->read<uint8_t>(TranslateAddress(eip++, CS));
@@ -197,18 +208,20 @@ private:
             regs[reg - 4].reg8_hi = data;
     }
 
-    uint8_t disp8;
-    uint16_t disp16;
-    uint32_t disp32;
+    int8_t disp8;
+    int16_t disp16;
+    int32_t disp32;
     bool isDisp8 = false;
     bool isDisp16 = false;
     bool isDisp32 = false;
     uint32_t GrabModRMAddress(std::string& disasm);
+	uint32_t GrabSIB(std::string& disasm);
     uint32_t GetRM(std::string& disasm);
     uint8_t GetRM8(std::string& disasm);
 
 	
     void SetRM(std::string& disasm, uint32_t val);
+    void SetRM8(std::string& disasm, uint8_t val);
 
     enum Flags
     {
@@ -217,6 +230,8 @@ private:
         PF = (1 << 2),
         ZF = (1 << 6),
         SF = (1 << 7),
+		IF = (1 << 9),
+		DF = (1 << 10),
         OF = (1 << 11)
     };
 
@@ -235,14 +250,34 @@ private:
         return flags & f;
     }
 
+	void add_r8_rm8(); // 0x02
+	void add_r_rm(); // 0x03
+	void add_eax_imm(); // 0x05
     void or_al_imm8(); // 0x0C
+	void or_r_rm(); // 0x0B
+	void and_r_rm(); // 0x23
+	void and_eax_imm(); // 0x25
+	void xor_r8_rm8(); // 0x32
     void xor_r_rm(); // 0x33
+	void cmp_r_rm(); // 0x3B
     void cmp_al_imm8(); // 0x3C
+	void inc_r(); // 0x40 + r
+	void dec_r(); // 0x48 + r
+	void jb_rel8(); // 0x72
+	void je_rel8(); // 0x74
     void jne_rel8(); // 0x75
+	void jbe_rel8(); // 0x76
+	void code_80(); // 0x80
+	void add_rm8_imm8(); // 0x80 0x00
+	void cmp_rm8_imm8(); // 0x80 0x07
 	void code_81(); // 0x81
+	void and_rm_imm(); // 0x81 0x04
 	void cmp_rm_imm(); // 0x81 0x07
 	void code_83(); // 0x83
 	void add_rm_imm8(); // 0x83 0x00
+	void cmp_rm_imm8(); // 0x83 0x07
+	void mov_rm8_r8(); // 0x88
+	void mov_rm_r(); // 0x89
     void mov_r8_rm8(); // 0x8A
     void mov_r_rm(); // 0x8B
     void mov_sreg_rm(); // 0x8E
@@ -251,7 +286,11 @@ private:
 	void jmp_rel32(); // 0xE9
     void jmp_ptr(); // 0xEA
     void jmp_rel8(); // 0xEB
+	void in_al_dx(); // 0xEC
+	void out_dx_al(); // 0xEE
+	void in_eax_dx(); // 0xED
 	void out_dx_eax(); // 0xEF
+	void inc_dec_rm8(); // 0xFE
 
     // 0x0F
     void code_0f01(); // 0x01
@@ -259,6 +298,8 @@ private:
     void lidt(); // 0x01 0x03
     void mov_r32_cr(); // 0x20
     void mov_cr_r32(); // 0x22
+	void wrmsr() {printf("wrmsr\n");} // 0x30
+	void movzx_r_rm(); // 0xB6
 public:
     CPU(Bus* bus, IoBus* iobus) : bus(bus), iobus(iobus) {Reset();}
     void Reset();

@@ -2,7 +2,7 @@
 #include <cstdlib>
 
 bool Application::initialized = false;
-System* Application::_sys = nullptr;
+System* _sys = nullptr;
 
 bool Application::Init(int, char**)
 {

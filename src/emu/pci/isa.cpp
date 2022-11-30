@@ -1,7 +1,10 @@
 #include <emu/pci/isa.h>
 
-ISA::ISA(PCIBus* bus)
-: PCIDevice(0x10de, 0x01b2, 0x06, 0x01)
+ISA::ISA(PCIBus* bus, IoBus* iobus)
+: 
+PCIDevice(0x10de, 0x01b2, 0x06, 0x01),
+IoDev("Industry Standard Architecture Bridge"),
+iobus(iobus)
 {
 	bus->RegisterPCIDevice(0, 1, 0, this);
 
@@ -21,4 +24,15 @@ void ISA::RemapBAR(int bar)
 		addr &= 0xFFFFFFF0;
 
 	printf("Remapping ISA bus %s to 0x%08x\n", is_io ? "I/O" : "memory", addr);
+
+	if (is_io)
+	{	
+		for (int i = 0; i < 256; i++)
+		{
+			iobus->UnregisterDevice(cur_io_addr + i);
+			iobus->RegisterDevice(this, addr + i);
+		}
+	}
+
+	cur_io_addr = addr;
 } 

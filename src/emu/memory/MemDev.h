@@ -8,12 +8,12 @@ class MemoryDevice
 private:
     std::string _name;
 
-    virtual uint8_t ReadByte(uint32_t addr) = 0;
-    virtual void WriteByte(uint32_t addr, uint8_t data) = 0;
-    virtual uint16_t ReadWord(uint32_t addr) = 0;
-    virtual void WriteWord(uint32_t addr, uint16_t data) = 0;
-    virtual uint32_t ReadDoubleWord(uint32_t addr) = 0;
-    virtual void WriteDoubleWord(uint32_t addr, uint32_t data) = 0;
+    virtual uint8_t mem_ReadByte(uint32_t addr) = 0;
+    virtual void mem_WriteByte(uint32_t addr, uint8_t data) = 0;
+    virtual uint16_t mem_ReadWord(uint32_t addr) = 0;
+    virtual void mem_WriteWord(uint32_t addr, uint16_t data) = 0;
+    virtual uint32_t mem_ReadDoubleWord(uint32_t addr) = 0;
+    virtual void mem_WriteDoubleWord(uint32_t addr, uint32_t data) = 0;
 public:
     MemoryDevice(std::string name) : _name(name) {}
     std::string GetName() {return _name;}
@@ -26,15 +26,15 @@ public:
     {
         if (std::is_same<T, uint8_t>::value || std::is_same<T, int8_t>::value)
         {
-            return (T)ReadByte(addr);
+            return (T)mem_ReadByte(addr);
         }
         else if (std::is_same<T, uint16_t>::value || std::is_same<T, int16_t>::value)
         {
-            return (T)ReadWord(addr);
+            return (T)mem_ReadWord(addr);
         }
         else if (std::is_same<T, uint32_t>::value || std::is_same<T, int32_t>::value)
         {
-            return (T)ReadDoubleWord(addr);
+            return (T)mem_ReadDoubleWord(addr);
         }
         else
         {
@@ -48,7 +48,15 @@ public:
     {
         if (std::is_same<T, uint8_t>::value)
         {
-            return WriteByte(addr, data);
+            return mem_WriteByte(addr, data);
+        }
+        if (std::is_same<T, uint16_t>::value)
+        {
+            return mem_WriteWord(addr, data);
+        }
+        if (std::is_same<T, uint32_t>::value)
+        {
+            return mem_WriteDoubleWord(addr, data);
         }
         else
         {

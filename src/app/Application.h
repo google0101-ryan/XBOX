@@ -5,13 +5,13 @@
 
 #include <emu/System.h>
 
+extern System* _sys;
+
 class Application
 {
 private:
     static bool initialized;
     static void Exit();
-
-    static System* _sys;
 public:
     static bool Init(int, char**);
 

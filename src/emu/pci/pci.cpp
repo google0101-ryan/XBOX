@@ -26,28 +26,42 @@ void PCIBus::WriteDoubleWord(uint16_t port, uint32_t data)
 {
 	if (port == 0xcf8)
 	{
-		cur_dev = data & 0xFFFF00;
+		cur_dev = data;
 		cur_reg = data & 0xFF;
 		int bus = (cur_dev >> 16) & 0xFF;
 		int dev = (cur_dev >> 11) & 0x1F;
 		int func = (cur_dev >> 8) & 0x07;
-		printf("Selected PCI device %d:%d:%d.%d\n", bus, dev, func, cur_reg);
+		printf("Selected PCI device %d.%d:%d.%x (0x%08x)\n", bus, dev, func, cur_reg, data);
 	}
 	else if (port == 0xcfc)
 	{
-		if (!devices[cur_dev])
+		if (!devices[cur_dev & 0xFFFF00])
 		{
 			int bus = (cur_dev >> 16) & 0xFF;
 			int dev = (cur_dev >> 11) & 0x1F;
 			int func = (cur_dev >> 8) & 0x07;
-			printf("Write to unknown PCI device %d:%d:%d.%d\n", bus, dev, func, cur_reg);
+			printf("Write to unknown PCI device %d.%d:%d.%x\n", bus, dev, func, cur_reg);
 			exit(1);
 		}
 
-		devices[cur_dev]->write_config_dword(cur_reg, data);
+		devices[cur_dev & 0xFFFF00]->write_config_dword(cur_reg, data);
 	}
 	else
 	{
 		IoDev::WriteDoubleWord(port, data);
+	}
+}
+
+uint32_t PCIBus::ReadDoubleWord(uint16_t port)
+{
+	switch (port)
+	{
+	case 0xCFC:
+	case 0xCFD:
+	case 0xCFE:
+	case 0xCFF:
+		return devices[cur_dev & 0xFFFF00]->read_config_dword(port - 0xCFC);
+	default:
+		return IoDev::ReadDoubleWord(port);
 	}
 }
