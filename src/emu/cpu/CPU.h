@@ -125,7 +125,7 @@ private:
         }
         else if (isPE)
         {
-            uint32_t entry_addr = gdtr.base + ((segs[seg].base >> 3) * 8);
+            uint32_t entry_addr = gdtr.base + ((segs[seg].selector >> 3) * 8);
             uint32_t entry1 = bus->read<uint32_t>(entry_addr);
             uint32_t entry2 = bus->read<uint32_t>(entry_addr+4);
 
@@ -211,17 +211,16 @@ private:
     int8_t disp8;
     int16_t disp16;
     int32_t disp32;
-    bool isDisp8 = false;
-    bool isDisp16 = false;
-    bool isDisp32 = false;
+    void FetchModrm();
     uint32_t GrabModRMAddress(std::string& disasm);
-	uint32_t GrabSIB(std::string& disasm);
-    uint32_t GetRM(std::string& disasm);
-    uint8_t GetRM8(std::string& disasm);
+    uint32_t ReadModrm32(std::string& disasm);
+    uint16_t ReadModrm16(std::string& disasm);
 
 	
     void SetRM(std::string& disasm, uint32_t val);
     void SetRM8(std::string& disasm, uint8_t val);
+
+    void SetFlagsLogic32(uint32_t result);
 
     enum Flags
     {
