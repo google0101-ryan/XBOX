@@ -215,6 +215,7 @@ private:
     uint32_t GrabModRMAddress(std::string& disasm);
     uint32_t ReadModrm32(std::string& disasm);
     uint16_t ReadModrm16(std::string& disasm);
+    uint8_t ReadModrm8(std::string& disasm);
 
 	
     void SetRM(std::string& disasm, uint32_t val);

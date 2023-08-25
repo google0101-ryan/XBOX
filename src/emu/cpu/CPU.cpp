@@ -32,10 +32,15 @@ void CPU::Reset()
 
     lookup[0x0C] = std::bind(&CPU::or_al_imm8, this);
     lookup[0x33] = std::bind(&CPU::xor_r_rm, this);
+    lookup[0x8a] = std::bind(&CPU::mov_r8_rm8, this);
     lookup[0x8e] = std::bind(&CPU::mov_sreg_rm, this);
     for (int i = 0; i < 8; i++)
     {
         lookup[0xB0+i] = std::bind(&CPU::mov_r8_imm8, this);
+    }
+    for (int i = 0; i < 8; i++)
+    {
+        lookup[0xB8+i] = std::bind(&CPU::mov_r_imm, this);
     }
     lookup[0xEA] = std::bind(&CPU::jmp_ptr, this);
     lookup[0xEB] = std::bind(&CPU::jmp_rel8, this);
@@ -127,9 +132,11 @@ void CPU::FetchModrm()
                 disp32 = bus->read<int32_t>(TranslateAddress(eip, CS));
                 eip += 4;
                 break;
-            default:
-                printf("Unknown modrm.mod32=0 modrm.rm32=%d\n", modrm.rm);
+            case 4:
+                printf("SIB!\n");
                 exit(1);
+            default:
+                break;
             }
             break;
         case 3: // Reg, no further data necessary
@@ -172,14 +179,19 @@ uint32_t CPU::GrabModRMAddress(std::string &disasm)
         {
             switch (modrm.rm)
             {
+            case 4:
+            {
+                printf("SIB!\n");
+                exit(1);
+            }
             case 5:
             {
                 disasm = convert_int(disp32);
                 return disp32;
             }
             default:
-                printf("Unknown modrm.mod=0, modrm.rm=%d\n", modrm.rm);
-                exit(1);
+                disasm = std::string("[") + Reg32[modrm.rm] + "]";
+                return regs[modrm.rm].reg32;
             }
             break;
         }
@@ -233,6 +245,17 @@ uint16_t CPU::ReadModrm16(std::string &disasm)
     {
         disasm = Reg16[modrm.rm];
         return regs[modrm.rm].reg16;
+    }
+}
+
+uint8_t CPU::ReadModrm8(std::string &disasm)
+{
+    if (modrm.mod != 3)
+        return bus->read<uint8_t>(TranslateAddress(GrabModRMAddress(disasm), prefix));
+    else
+    {
+        disasm = Reg8[modrm.rm];
+        return GetReg8(modrm.rm);
     }
 }
 

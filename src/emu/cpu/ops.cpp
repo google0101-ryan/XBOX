@@ -40,6 +40,16 @@ void CPU::xor_r_rm()
     }
 }
 
+void CPU::mov_r8_rm8()
+{
+    FetchModrm();
+
+    std::string disasm;
+    SetReg8(modrm.reg, ReadModrm8(disasm));
+
+    printf("mov %s, %s\n", Reg8[modrm.reg], disasm.c_str());
+}
+
 void CPU::mov_sreg_rm()
 {
     FetchModrm();
@@ -69,9 +79,14 @@ void CPU::mov_r_imm()
         uint32_t imm32 = bus->read<uint32_t>(TranslateAddress(eip, CS));
         eip += 4;
 
-        regs[modrm.reg].reg32 = imm32;
+        regs[reg].reg32 = imm32;
 
-        printf("mov %s")
+        printf("mov %s, 0x%08x\n", Reg32[reg], imm32);
+    }
+    else
+    {
+        printf("TODO: mov r16, imm16\n");
+        exit(1);
     }
 }
 
