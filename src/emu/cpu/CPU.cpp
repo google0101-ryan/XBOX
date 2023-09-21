@@ -32,7 +32,11 @@ void CPU::Reset()
 
     lookup[0x0C] = std::bind(&CPU::or_al_imm8, this);
     lookup[0x33] = std::bind(&CPU::xor_r_rm, this);
+    lookup[0x3C] = std::bind(&CPU::cmp_al_imm8, this);
+    lookup[0x75] = std::bind(&CPU::jne_rel8, this);
+    lookup[0x83] = std::bind(&CPU::code_83, this);
     lookup[0x8a] = std::bind(&CPU::mov_r8_rm8, this);
+    lookup[0x8b] = std::bind(&CPU::mov_r_rm, this);
     lookup[0x8e] = std::bind(&CPU::mov_sreg_rm, this);
     for (int i = 0; i < 8; i++)
     {
@@ -139,6 +143,14 @@ void CPU::FetchModrm()
                 break;
             }
             break;
+        case 1:
+            disp8 = bus->read<uint8_t>(TranslateAddress(eip++, CS));
+            if (modrm.rm == 4)
+            {
+                printf("SIB!\n");
+                exit(1);
+            }
+            break;
         case 3: // Reg, no further data necessary
             break;
         default:
@@ -186,14 +198,27 @@ uint32_t CPU::GrabModRMAddress(std::string &disasm)
             }
             case 5:
             {
-                disasm = convert_int(disp32);
+                disasm = "[" + convert_int(disp32) + "]";
                 return disp32;
             }
             default:
                 disasm = std::string("[") + Reg32[modrm.rm] + "]";
                 return regs[modrm.rm].reg32;
             }
-            break;
+        }
+        case 1:
+        {
+            switch (modrm.rm)
+            {
+            case 4:
+            {
+                printf("SIB!\n");
+                exit(1);
+            }
+            default:
+                disasm = std::string("[") + Reg32[modrm.rm] + "+" + convert_int(disp8) + "]";
+                return regs[modrm.rm].reg32 + disp8;
+            }
         }
         default:
             printf("Unknown modrm.mod32 %d\n", modrm.mod);
@@ -259,10 +284,46 @@ uint8_t CPU::ReadModrm8(std::string &disasm)
     }
 }
 
+void CPU::SetRM32(std::string &disasm, uint32_t val)
+{
+    if (modrm.mod != 3)
+        bus->write<uint32_t>(TranslateAddress(GrabModRMAddress(disasm), prefix), val);
+    else
+    {
+        disasm = Reg32[modrm.rm];
+        regs[modrm.rm].reg32 = val;
+    }
+}
+
+void CPU::SetRM16(std::string &disasm, uint16_t val)
+{
+    if (modrm.mod != 3)
+        bus->write<uint16_t>(TranslateAddress(GrabModRMAddress(disasm), prefix), val);
+    else
+    {
+        disasm = Reg16[modrm.rm];
+        regs[modrm.rm].reg16 = val;
+    }
+}
+
 void CPU::SetFlagsLogic32(uint32_t result)
 {
     SetFlag(CF, 0);
     SetFlag(OF, 0);
     SetFlag(ZF, result == 0);
     SetFlag(SF, (result >> 31) & 1);
+}
+
+void CPU::SetFlagsSub8(uint8_t a, uint8_t b, uint8_t result)
+{
+    SetFlag(CF, b > a);
+    SetFlag(ZF, result == 0);
+    SetFlag(SF, ((result >> 7) & 1) != 0);
+}
+
+void CPU::SetFlagsAdd32(uint32_t a, uint32_t b, uint64_t result)
+{
+    SetFlag(CF, (result >> 32) != 0);
+    SetFlag(ZF, (result&0xFFFFFFFF) == 0);
+    SetFlag(SF, ((result >> 31) & 1) != 0);
 }

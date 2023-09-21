@@ -218,10 +218,13 @@ private:
     uint8_t ReadModrm8(std::string& disasm);
 
 	
-    void SetRM(std::string& disasm, uint32_t val);
+    void SetRM32(std::string& disasm, uint32_t val);
+    void SetRM16(std::string& disasm, uint16_t val);
     void SetRM8(std::string& disasm, uint8_t val);
 
     void SetFlagsLogic32(uint32_t result);
+    void SetFlagsSub8(uint8_t a, uint8_t b, uint8_t result);
+    void SetFlagsAdd32(uint32_t a, uint32_t b, uint64_t result);
 
     enum Flags
     {

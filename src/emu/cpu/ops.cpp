@@ -40,6 +40,62 @@ void CPU::xor_r_rm()
     }
 }
 
+void CPU::cmp_al_imm8()
+{
+    uint8_t imm8 = bus->read<uint8_t>(TranslateAddress(eip++, CS));
+
+    uint8_t result = regs[EAX].reg8_lo - imm8;
+    SetFlagsSub8(regs[EAX].reg8_lo, imm8, result);
+
+    printf("cmp al, 0x%02x\n", imm8);
+}
+
+void CPU::jne_rel8()
+{
+    int8_t rel8 = bus->read<uint8_t>(TranslateAddress(eip++, CS));
+    
+    printf("jne 0x%08x\n", TranslateAddress(eip+rel8, CS));
+
+    if (!GetFlag(ZF))
+        eip += rel8;
+}
+
+void CPU::code_83()
+{
+    FetchModrm();
+
+    switch (modrm.reg)
+    {
+    case 0:
+        add_rm_imm8();
+        break;
+    default:
+        printf("Unknown opcode 0x83 0x%01x\n", modrm.reg);
+        exit(1);
+    }
+}
+
+void CPU::add_rm_imm8()
+{
+    uint8_t imm8 = bus->read<uint8_t>(TranslateAddress(eip++, CS));
+
+    if (o32)
+    {
+        std::string disasm;
+        uint32_t rm32 = ReadModrm32(disasm);
+        uint64_t result = (uint64_t)rm32 + (uint64_t)imm8;
+        SetFlagsAdd32(rm32, imm8, result);
+        SetRM32(disasm, result);
+
+        printf("add %s, 0x%02x\n", disasm.c_str(), imm8);
+    }
+    else
+    {
+        printf("add rm16, imm8\n");
+        exit(1);
+    }
+}
+
 void CPU::mov_r8_rm8()
 {
     FetchModrm();
@@ -48,6 +104,26 @@ void CPU::mov_r8_rm8()
     SetReg8(modrm.reg, ReadModrm8(disasm));
 
     printf("mov %s, %s\n", Reg8[modrm.reg], disasm.c_str());
+}
+
+void CPU::mov_r_rm()
+{
+    FetchModrm();
+
+    if (o32)
+    {
+        std::string disasm;
+        regs[modrm.reg].reg32 = ReadModrm32(disasm);
+
+        printf("mov %s, %s\n", Reg32[modrm.reg], disasm.c_str());
+    }
+    else
+    {
+        std::string disasm;
+        regs[modrm.reg].reg16 = ReadModrm16(disasm);
+
+        printf("mov %s, %s\n", Reg16[modrm.reg], disasm.c_str());
+    }
 }
 
 void CPU::mov_sreg_rm()
@@ -123,7 +199,7 @@ void CPU::lgdt()
     gdtr.limit = bus->read<uint16_t>(TranslateAddress(addr, prefix));
     gdtr.base = bus->read<uint32_t>(TranslateAddress(addr+2, prefix));
 
-    printf("lgdt [%s]\n", disasm.c_str());
+    printf("lgdt %s\n", disasm.c_str());
 }
 
 void CPU::lidt()
